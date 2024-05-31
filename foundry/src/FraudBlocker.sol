@@ -4,15 +4,17 @@ pragma solidity 0.8.26;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-error FraudBlockeer__InsufficientAmount();
-error FraudBlockeer__ProjectDoesNotExist();
-error FraudBlockeer__ProjectHasEnded();
-error FraudBlockeer__YouAreNotAuditor();
-error FraudBlockeer__YouAreAlreadyAnAuditor();
-error FraudBlockeer__TheUserIsNotAnAuditor();
-error FraudBlockeer__TransferFailed();
+error FraudBlocker__InsufficientAmount();
+error FraudBlocker__ProjectDoesNotExist();
+error FraudBlocker__ProjectHasEnded();
+error FraudBlocker__YouAreNotAuditor();
+error FraudBlocker__YouAreAlreadyAnAuditor();
+error FraudBlocker__TheUserIsNotAnAuditor();
+error FraudBlocker__TransferFailed();
+error FraudBlocker__YouAreOnTheBlacklist();
+error FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
 
-contract FraudBlockeer is Ownable, ReentrancyGuard {
+contract FraudBlocker is Ownable, ReentrancyGuard {
     enum Status {
         Pending,
         Ended
@@ -34,6 +36,7 @@ contract FraudBlockeer is Ownable, ReentrancyGuard {
     mapping(address => uint256[]) private s_submittedProjects;
     mapping(address => uint256) private s_lastAuditTimestamp;
     mapping(address => bool) private s_isAuditor;
+    mapping(address => bool) private s_blacklist;
 
     constructor() Ownable(msg.sender) {
         s_idCounter = 0;
@@ -45,7 +48,7 @@ contract FraudBlockeer is Ownable, ReentrancyGuard {
         bytes memory _projectDescription
     ) public payable {
         if (msg.value != 0.003 ether) {
-            revert FraudBlockeer__InsufficientAmount();
+            revert FraudBlocker__InsufficientAmount();
         }
 
         s_projectData[s_idCounter].id = s_idCounter;
@@ -63,13 +66,13 @@ contract FraudBlockeer is Ownable, ReentrancyGuard {
         bytes memory _auditResult
     ) public nonReentrant {
         if (_projectId >= s_idCounter) {
-            revert FraudBlockeer__ProjectDoesNotExist();
+            revert FraudBlocker__ProjectDoesNotExist();
         }
         if (s_projectData[_projectId].status == Status.Ended) {
-            revert FraudBlockeer__ProjectHasEnded();
+            revert FraudBlocker__ProjectHasEnded();
         }
         if (s_isAuditor[msg.sender] == false) {
-            revert FraudBlockeer__YouAreNotAuditor();
+            revert FraudBlocker__YouAreNotAuditor();
         }
 
         for (uint256 i = 0; i < 3; i++) {
@@ -79,7 +82,7 @@ contract FraudBlockeer is Ownable, ReentrancyGuard {
                 s_lastAuditTimestamp[msg.sender] = block.timestamp;
                 (bool success, ) = msg.sender.call{value: 0.001 ether}("");
                 if (!success) {
-                    revert FraudBlockeer__TransferFailed();
+                    revert FraudBlocker__TransferFailed();
                 }
                 break;
             }
@@ -88,10 +91,13 @@ contract FraudBlockeer is Ownable, ReentrancyGuard {
 
     function stakeAsAuditor() public payable {
         if (msg.value != 0.1 ether) {
-            revert FraudBlockeer__InsufficientAmount();
+            revert FraudBlocker__InsufficientAmount();
         }
         if (s_isAuditor[msg.sender] == true) {
-            revert FraudBlockeer__YouAreAlreadyAnAuditor();
+            revert FraudBlocker__YouAreAlreadyAnAuditor();
+        }
+        if (s_blacklist[msg.sender] == true) {
+            revert FraudBlocker__YouAreOnTheBlacklist();
         }
 
         s_isAuditor[msg.sender] = true;
@@ -99,25 +105,32 @@ contract FraudBlockeer is Ownable, ReentrancyGuard {
 
     function revokeAndWithdrawStake() public nonReentrant {
         if (s_isAuditor[msg.sender] == false) {
-            revert FraudBlockeer__TheUserIsNotAnAuditor();
+            revert FraudBlocker__TheUserIsNotAnAuditor();
+        }
+
+        if (s_lastAuditTimestamp[msg.sender] + 3 days < block.timestamp) {
+            revert FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
         }
 
         s_isAuditor[msg.sender] = false;
 
         (bool success, ) = msg.sender.call{value: 0.1 ether}("");
         if (!success) {
-            revert FraudBlockeer__TransferFailed();
+            revert FraudBlocker__TransferFailed();
         }
     }
 
-    function revokeAuditor() public payable onlyOwner nonReentrant {
+    function blockAuditor(
+        address auditor
+    ) public payable onlyOwner nonReentrant {
         if (s_isAuditor[msg.sender] == false) {
-            revert FraudBlockeer__TheUserIsNotAnAuditor();
+            revert FraudBlocker__TheUserIsNotAnAuditor();
         }
-        s_isAuditor[msg.sender] = false;
+        s_isAuditor[auditor] = false;
+        s_blacklist[auditor] = true;
         (bool success, ) = msg.sender.call{value: 0.1 ether}("");
         if (!success) {
-            revert FraudBlockeer__TransferFailed();
+            revert FraudBlocker__TransferFailed();
         }
     }
 
