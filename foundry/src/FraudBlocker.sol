@@ -6,12 +6,13 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 error FraudBlocker__InsufficientAmount();
 error FraudBlocker__ProjectDoesNotExist();
-error FraudBlocker__ProjectHasEnded();
+error FraudBlocker__AuditHasEnded();
 error FraudBlocker__YouAreNotAuditor();
 error FraudBlocker__YouAreAlreadyAnAuditor();
 error FraudBlocker__TheUserIsNotAnAuditor();
 error FraudBlocker__TransferFailed();
 error FraudBlocker__YouAreOnTheBlacklist();
+error FraudBlocker__YouHaveAlreadyAuditedThisProject();
 error FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
 
 contract FraudBlocker is Ownable, ReentrancyGuard {
@@ -69,7 +70,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
             revert FraudBlocker__ProjectDoesNotExist();
         }
         if (s_projectData[_projectId].status == Status.Ended) {
-            revert FraudBlocker__ProjectHasEnded();
+            revert FraudBlocker__AuditHasEnded();
         }
         if (s_isAuditor[msg.sender] == false) {
             revert FraudBlocker__YouAreNotAuditor();
@@ -77,9 +78,17 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
         for (uint256 i = 0; i < 3; i++) {
             if (s_projectData[_projectId].auditor[i] == address(0)) {
+                for (uint256 j = 0; j < i; j++) {
+                    if (s_projectData[_projectId].auditor[j] == msg.sender) {
+                        revert FraudBlocker__YouHaveAlreadyAuditedThisProject();
+                    }
+                }
                 s_projectData[_projectId].auditor[i] = msg.sender;
                 s_projectData[_projectId].auditResult[i] = _auditResult;
                 s_lastAuditTimestamp[msg.sender] = block.timestamp;
+                if (i == 2) {
+                    s_projectData[_projectId].status = Status.Ended;
+                }
                 (bool success, ) = msg.sender.call{value: 0.001 ether}("");
                 if (!success) {
                     revert FraudBlocker__TransferFailed();
@@ -108,7 +117,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
             revert FraudBlocker__TheUserIsNotAnAuditor();
         }
 
-        if (s_lastAuditTimestamp[msg.sender] + 3 days < block.timestamp) {
+        if (s_lastAuditTimestamp[msg.sender] + 3 days > block.timestamp) {
             revert FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
         }
 
@@ -123,7 +132,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     function blockAuditor(
         address auditor
     ) public payable onlyOwner nonReentrant {
-        if (s_isAuditor[msg.sender] == false) {
+        if (s_isAuditor[auditor] == false) {
             revert FraudBlocker__TheUserIsNotAnAuditor();
         }
         s_isAuditor[auditor] = false;
@@ -142,5 +151,15 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         uint256 _id
     ) public view returns (ProjectData memory) {
         return s_projectData[_id];
+    }
+
+    function getLastAuditTimestamp(
+        address _auditor
+    ) public view returns (uint256) {
+        return s_lastAuditTimestamp[_auditor];
+    }
+
+    function getIsAuditor(address _auditor) public view returns (bool) {
+        return s_isAuditor[_auditor];
     }
 }
