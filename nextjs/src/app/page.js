@@ -1,14 +1,16 @@
-import Image from "next/image"
+"use client"
 import Head from "next/head"
+import Header from "../../components/Header"
 
 export default function Home() {
     return (
-        <div className="bg-yellow-400 flex-col min-h-screen">
+        <div className="flex-col min-h-screen">
             <Head>
                 <title>Fraud Blocker</title>
                 <meta name="description" content="Fraud Blocker" />
                 <link rel="icon" href="/logo1.png" />
             </Head>
+            <Header />
         </div>
     )
 }
