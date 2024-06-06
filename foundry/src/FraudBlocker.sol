@@ -162,4 +162,10 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     function getIsAuditor(address _auditor) public view returns (bool) {
         return s_isAuditor[_auditor];
     }
+
+    function getSubmittedProjects(
+        address _submitter
+    ) public view returns (uint256[] memory) {
+        return s_submittedProjects[_submitter];
+    }
 }

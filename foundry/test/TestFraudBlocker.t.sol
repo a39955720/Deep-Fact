@@ -13,7 +13,7 @@ contract FraudBlockerTest is StdCheats, Test {
     address AUDITOR2 = makeAddr("auditor2");
     address AUDITOR3 = makeAddr("auditor3");
     address AUDITOR4 = makeAddr("auditor4");
-    address OWNER = 0x6Ec373C59C1f68B2C984640e63cb38f2E2d34f8C;
+    address OWNER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     string testString = "TEST";
     bytes testBytes = abi.encode(testString);
 
