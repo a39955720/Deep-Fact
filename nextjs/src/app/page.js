@@ -1,6 +1,7 @@
 "use client"
 import Head from "next/head"
 import Header from "../../components/Header"
+import ProjectInfoForm from "../../components/ProjectInfoForm"
 
 export default function Home() {
     return (
@@ -11,6 +12,7 @@ export default function Home() {
                 <link rel="icon" href="/logo1.png" />
             </Head>
             <Header />
+            <ProjectInfoForm />
         </div>
     )
 }

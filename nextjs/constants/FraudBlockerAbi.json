@@ -1,0 +1,204 @@
+[
+    { "type": "constructor", "inputs": [], "stateMutability": "nonpayable" },
+    {
+        "type": "function",
+        "name": "auditProject",
+        "inputs": [
+            { "name": "_projectId", "type": "uint256", "internalType": "uint256" },
+            { "name": "_auditResult", "type": "bytes", "internalType": "bytes" }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "blockAuditor",
+        "inputs": [{ "name": "auditor", "type": "address", "internalType": "address" }],
+        "outputs": [],
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "getIsAuditor",
+        "inputs": [{ "name": "_auditor", "type": "address", "internalType": "address" }],
+        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getLastAuditTimestamp",
+        "inputs": [{ "name": "_auditor", "type": "address", "internalType": "address" }],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getProjectData",
+        "inputs": [{ "name": "_id", "type": "uint256", "internalType": "uint256" }],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple",
+                "internalType": "struct FraudBlocker.ProjectData",
+                "components": [
+                    { "name": "id", "type": "uint256", "internalType": "uint256" },
+                    { "name": "projectName", "type": "bytes", "internalType": "bytes" },
+                    { "name": "projectLink", "type": "bytes", "internalType": "bytes" },
+                    {
+                        "name": "projectDescription",
+                        "type": "bytes",
+                        "internalType": "bytes"
+                    },
+                    {
+                        "name": "auditor",
+                        "type": "address[3]",
+                        "internalType": "address[3]"
+                    },
+                    {
+                        "name": "auditResult",
+                        "type": "bytes[3]",
+                        "internalType": "bytes[3]"
+                    },
+                    {
+                        "name": "status",
+                        "type": "uint8",
+                        "internalType": "enum FraudBlocker.Status"
+                    }
+                ]
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getSubmittedProjects",
+        "inputs": [{ "name": "_submitter", "type": "address", "internalType": "address" }],
+        "outputs": [{ "name": "", "type": "uint256[]", "internalType": "uint256[]" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getTotalProject",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "owner",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "renounceOwnership",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "revokeAndWithdrawStake",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "stakeAsAuditor",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "submitProject",
+        "inputs": [
+            { "name": "_projectName", "type": "bytes", "internalType": "bytes" },
+            { "name": "_projectLink", "type": "bytes", "internalType": "bytes" },
+            {
+                "name": "_projectDescription",
+                "type": "bytes",
+                "internalType": "bytes"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "transferOwnership",
+        "inputs": [{ "name": "newOwner", "type": "address", "internalType": "address" }],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "event",
+        "name": "OwnershipTransferred",
+        "inputs": [
+            {
+                "name": "previousOwner",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "newOwner",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            }
+        ],
+        "anonymous": false
+    },
+    { "type": "error", "name": "FraudBlocker__AuditHasEnded", "inputs": [] },
+    {
+        "type": "error",
+        "name": "FraudBlocker__InsufficientAmount",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "FraudBlocker__ProjectDoesNotExist",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "FraudBlocker__TheUserIsNotAnAuditor",
+        "inputs": []
+    },
+    { "type": "error", "name": "FraudBlocker__TransferFailed", "inputs": [] },
+    {
+        "type": "error",
+        "name": "FraudBlocker__YouAreAlreadyAnAuditor",
+        "inputs": []
+    },
+    { "type": "error", "name": "FraudBlocker__YouAreNotAuditor", "inputs": [] },
+    {
+        "type": "error",
+        "name": "FraudBlocker__YouAreOnTheBlacklist",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "FraudBlocker__YouHaveAlreadyAuditedThisProject",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "OwnableInvalidOwner",
+        "inputs": [{ "name": "owner", "type": "address", "internalType": "address" }]
+    },
+    {
+        "type": "error",
+        "name": "OwnableUnauthorizedAccount",
+        "inputs": [{ "name": "account", "type": "address", "internalType": "address" }]
+    },
+    { "type": "error", "name": "ReentrancyGuardReentrantCall", "inputs": [] }
+]

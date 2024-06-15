@@ -26,6 +26,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         bytes projectName;
         bytes projectLink;
         bytes projectDescription;
+        bytes aiAuditResult;
         address[3] auditor;
         bytes[3] auditResult;
         Status status;
@@ -46,7 +47,8 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     function submitProject(
         bytes memory _projectName,
         bytes memory _projectLink,
-        bytes memory _projectDescription
+        bytes memory _projectDescription,
+        bytes memory _aiAuditResult
     ) public payable {
         if (msg.value != 0.003 ether) {
             revert FraudBlocker__InsufficientAmount();
@@ -57,6 +59,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         s_projectData[s_idCounter].projectLink = _projectLink;
         s_projectData[s_idCounter].projectDescription = _projectDescription;
         s_projectData[s_idCounter].status = Status.Pending;
+        s_projectData[s_idCounter].aiAuditResult = _aiAuditResult;
 
         s_submittedProjects[msg.sender].push(s_idCounter);
         s_idCounter++;

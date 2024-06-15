@@ -34,7 +34,7 @@ contract FraudBlockerTest is StdCheats, Test {
             "FraudBlocker__InsufficientAmount()"
         );
         vm.expectRevert(customError);
-        fraudBlocker.submitProject(testBytes, testBytes, testBytes);
+        fraudBlocker.submitProject(testBytes, testBytes, testBytes, testBytes);
     }
 
     function testSubmitProject() public {
@@ -42,11 +42,16 @@ contract FraudBlockerTest is StdCheats, Test {
         fraudBlocker.submitProject{value: 0.003 ether}(
             testBytes,
             testBytes,
+            testBytes,
             testBytes
         );
 
         assertEq(fraudBlocker.getTotalProject(), 1);
         assertEq(fraudBlocker.getProjectData(0).id, 0);
+        assertEq(
+            abi.decode(fraudBlocker.getProjectData(0).aiAuditResult, (string)),
+            testString
+        );
         assertEq(
             abi.decode(fraudBlocker.getProjectData(0).projectName, (string)),
             testString
@@ -73,6 +78,7 @@ contract FraudBlockerTest is StdCheats, Test {
     function testAuditProjectError() public {
         vm.prank(USER);
         fraudBlocker.submitProject{value: 0.003 ether}(
+            testBytes,
             testBytes,
             testBytes,
             testBytes
@@ -122,6 +128,7 @@ contract FraudBlockerTest is StdCheats, Test {
     function testAuditProject() public {
         vm.prank(USER);
         fraudBlocker.submitProject{value: 0.003 ether}(
+            testBytes,
             testBytes,
             testBytes,
             testBytes
@@ -198,6 +205,7 @@ contract FraudBlockerTest is StdCheats, Test {
         fraudBlocker.submitProject{value: 0.003 ether}(
             testBytes,
             testBytes,
+            testBytes,
             testBytes
         );
         vm.startPrank(AUDITOR1);
@@ -213,6 +221,7 @@ contract FraudBlockerTest is StdCheats, Test {
     function testRevokeAndWithdrawStake() public {
         vm.prank(USER);
         fraudBlocker.submitProject{value: 0.003 ether}(
+            testBytes,
             testBytes,
             testBytes,
             testBytes
