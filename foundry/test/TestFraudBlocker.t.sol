@@ -21,6 +21,45 @@ contract FraudBlockerTest is StdCheats, Test {
     uint256 private HANDLINGFEE;
     uint256 private STAKEAMOUNT;
     uint256 private LOCKUPPERIOD;
+    uint256 private VOTINGDURATION;
+
+    modifier _submitProject() {
+        vm.prank(USER);
+        fraudBlocker.submitProject{value: AUDITFEE}(
+            testBytes,
+            testBytes,
+            testBytes,
+            testBytes
+        );
+        _;
+    }
+
+    modifier _stakeAsAuditor() {
+        vm.startPrank(AUDITOR1);
+        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
+        fraudBlocker.auditProject(0, testBytes);
+        vm.stopPrank();
+        vm.startPrank(AUDITOR2);
+        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
+        fraudBlocker.auditProject(0, testBytes);
+        vm.stopPrank();
+        vm.startPrank(AUDITOR3);
+        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
+        fraudBlocker.auditProject(0, testBytes);
+        vm.stopPrank();
+        _;
+    }
+
+    modifier _createProposal() {
+        vm.prank(OWNER);
+        fraudBlocker.createProposal(0, 0);
+        _;
+    }
+
+    enum Status {
+        Pending,
+        Ended
+    }
 
     function setUp() external {
         DeployFraudBlocker deployer = new DeployFraudBlocker();
@@ -30,6 +69,7 @@ contract FraudBlockerTest is StdCheats, Test {
         HANDLINGFEE = fraudBlocker.getHandlingFee();
         STAKEAMOUNT = fraudBlocker.getStakeAmount();
         LOCKUPPERIOD = fraudBlocker.getLockupPeriod();
+        VOTINGDURATION = fraudBlocker.getVotingDuration();
         vm.deal(USER, AUDITFEE);
         vm.deal(AUDITOR1, STAKEAMOUNT * 2);
         vm.deal(AUDITOR2, STAKEAMOUNT);
@@ -37,7 +77,7 @@ contract FraudBlockerTest is StdCheats, Test {
         vm.deal(AUDITOR4, STAKEAMOUNT);
     }
 
-    function testInitialContract() public {
+    function testInitialContract() public view {
         assertEq(fraudBlocker.owner(), OWNER);
         assertEq(fraudBlocker.getTotalProject(), 0);
     }
@@ -51,15 +91,7 @@ contract FraudBlockerTest is StdCheats, Test {
         fraudBlocker.submitProject(testBytes, testBytes, testBytes, testBytes);
     }
 
-    function testSubmitProject() public {
-        vm.prank(USER);
-        fraudBlocker.submitProject{value: AUDITFEE}(
-            testBytes,
-            testBytes,
-            testBytes,
-            testBytes
-        );
-
+    function testSubmitProject() public _submitProject {
         assertEq(fraudBlocker.getTotalProject(), 1);
         assertEq(fraudBlocker.getProjectData(0).id, 0);
         assertEq(
@@ -90,15 +122,7 @@ contract FraudBlockerTest is StdCheats, Test {
         assertEq(fraudBlocker.getSubmittedProjects(USER)[0], 0);
     }
 
-    function testAuditProjectError() public {
-        vm.prank(USER);
-        fraudBlocker.submitProject{value: AUDITFEE}(
-            testBytes,
-            testBytes,
-            testBytes,
-            testBytes
-        );
-
+    function testAuditProjectError() public _submitProject {
         vm.prank(AUDITOR1);
         bytes memory customError = abi.encodeWithSignature(
             "FraudBlocker__YouAreNotAuditor()"
@@ -140,28 +164,7 @@ contract FraudBlockerTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-    function testAuditProject() public {
-        vm.prank(USER);
-        fraudBlocker.submitProject{value: AUDITFEE}(
-            testBytes,
-            testBytes,
-            testBytes,
-            testBytes
-        );
-
-        vm.startPrank(AUDITOR1);
-        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
-        fraudBlocker.auditProject(0, testBytes);
-        vm.stopPrank();
-        vm.startPrank(AUDITOR2);
-        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
-        fraudBlocker.auditProject(0, testBytes);
-        vm.stopPrank();
-        vm.startPrank(AUDITOR3);
-        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
-        fraudBlocker.auditProject(0, testBytes);
-        vm.stopPrank();
-
+    function testAuditProject() public _submitProject _stakeAsAuditor {
         assertEq(
             uint(fraudBlocker.getProjectData(0).status),
             uint(FraudBlocker.Status.Ended)
@@ -194,15 +197,6 @@ contract FraudBlockerTest is StdCheats, Test {
         vm.expectRevert(customError);
         fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
         vm.stopPrank();
-
-        vm.prank(OWNER);
-        fraudBlocker.blockAuditor(AUDITOR1);
-        vm.prank(AUDITOR1);
-        customError = abi.encodeWithSignature(
-            "FraudBlocker__YouAreOnTheBlacklist()"
-        );
-        vm.expectRevert(customError);
-        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
     }
 
     function testStakeAsAuditor() public {
@@ -212,7 +206,7 @@ contract FraudBlockerTest is StdCheats, Test {
         assertEq(fraudBlocker.getIsAuditor(AUDITOR1), true);
     }
 
-    function testRevokeAndWithdrawStakeError() public {
+    function testRevokeAndWithdrawStakeError() public _submitProject {
         vm.prank(AUDITOR1);
         bytes memory customError = abi.encodeWithSignature(
             "FraudBlocker__TheUserIsNotAnAuditor()"
@@ -220,13 +214,6 @@ contract FraudBlockerTest is StdCheats, Test {
         vm.expectRevert(customError);
         fraudBlocker.revokeAndWithdrawStake();
 
-        vm.prank(USER);
-        fraudBlocker.submitProject{value: AUDITFEE}(
-            testBytes,
-            testBytes,
-            testBytes,
-            testBytes
-        );
         vm.startPrank(AUDITOR1);
         fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
         fraudBlocker.auditProject(0, testBytes);
@@ -237,14 +224,7 @@ contract FraudBlockerTest is StdCheats, Test {
         fraudBlocker.revokeAndWithdrawStake();
     }
 
-    function testRevokeAndWithdrawStake() public {
-        vm.prank(USER);
-        fraudBlocker.submitProject{value: AUDITFEE}(
-            testBytes,
-            testBytes,
-            testBytes,
-            testBytes
-        );
+    function testRevokeAndWithdrawStake() public _submitProject {
         vm.startPrank(AUDITOR1);
         fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
         fraudBlocker.auditProject(0, testBytes);
@@ -260,29 +240,154 @@ contract FraudBlockerTest is StdCheats, Test {
         );
     }
 
-    function testBlockAuditorError() public {
+    function testCreateProposalError() public _submitProject {
         vm.prank(USER);
         vm.expectRevert(
             abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", USER)
         );
-        fraudBlocker.blockAuditor(AUDITOR1);
+        fraudBlocker.createProposal(0, 0);
 
         vm.prank(OWNER);
         bytes memory customError = abi.encodeWithSignature(
-            "FraudBlocker__TheUserIsNotAnAuditor()"
+            "FraudBlocker__ProjectDoesNotExist()"
         );
         vm.expectRevert(customError);
-        fraudBlocker.blockAuditor(AUDITOR1);
+        fraudBlocker.createProposal(1, 0);
+
+        vm.prank(OWNER);
+        customError = abi.encodeWithSignature(
+            "FraudBlocker__TheAuditorDoesNotExist()"
+        );
+        vm.expectRevert(customError);
+        fraudBlocker.createProposal(0, 3);
     }
 
-    function testBlockAuditor() public {
-        vm.startPrank(AUDITOR1);
-        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
-        vm.startPrank(OWNER);
-        fraudBlocker.blockAuditor(AUDITOR1);
+    function testCreateProposal()
+        public
+        _submitProject
+        _stakeAsAuditor
+        _createProposal
+    {
+        (
+            uint256 startTime,
+            uint256 yesVotes,
+            uint256 noVotes,
+            FraudBlocker.Status status
+        ) = fraudBlocker.getProposalInfo(0);
 
+        assertEq(startTime, block.timestamp);
+        assertEq(yesVotes, 0);
+        assertEq(noVotes, 0);
+        assertEq(uint(status), uint(FraudBlocker.Status.Pending));
+    }
+
+    function testVoteOnProposalError()
+        public
+        _submitProject
+        _stakeAsAuditor
+        _createProposal
+    {
+        vm.prank(AUDITOR1);
+        bytes memory customError = abi.encodeWithSignature(
+            "FraudBlocker__ProjectDoesNotExist()"
+        );
+        vm.expectRevert(customError);
+        fraudBlocker.voteOnProposal(1, true);
+
+        vm.prank(USER);
+        customError = abi.encodeWithSignature(
+            "FraudBlocker__YouAreNotAuditor()"
+        );
+        vm.expectRevert(customError);
+        fraudBlocker.voteOnProposal(0, true);
+
+        vm.startPrank(AUDITOR1);
+        fraudBlocker.voteOnProposal(0, true);
+        customError = abi.encodeWithSignature(
+            "FraudBlocker__YouHaveAlreadyVoted()"
+        );
+        vm.expectRevert(customError);
+        fraudBlocker.voteOnProposal(0, true);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + VOTINGDURATION + 1);
+        vm.prank(AUDITOR2);
+        fraudBlocker.voteOnProposal(0, true);
+        vm.prank(AUDITOR3);
+        customError = abi.encodeWithSignature("FraudBlocker__VotingHasEnded()");
+        vm.expectRevert(customError);
+        fraudBlocker.voteOnProposal(0, true);
+
+        vm.prank(AUDITOR1);
+        customError = abi.encodeWithSignature(
+            "FraudBlocker__YouAreOnTheBlacklist()"
+        );
+        vm.expectRevert(customError);
+        fraudBlocker.stakeAsAuditor{value: STAKEAMOUNT}();
+    }
+
+    function testVoteOnProposalPass()
+        public
+        _submitProject
+        _stakeAsAuditor
+        _createProposal
+    {
+        uint256 contractStartBalance = address(fraudBlocker).balance;
+        uint256 victimStartBalance = USER.balance;
+
+        vm.prank(AUDITOR1);
+        fraudBlocker.voteOnProposal(0, true);
+        vm.warp(block.timestamp + VOTINGDURATION + 1);
+        vm.prank(AUDITOR2);
+        fraudBlocker.voteOnProposal(0, true);
+
+        (
+            ,
+            uint256 yesVotes,
+            uint256 noVotes,
+            FraudBlocker.Status status
+        ) = fraudBlocker.getProposalInfo(0);
+
+        assertEq(yesVotes, 2);
+        assertEq(noVotes, 0);
+        assertEq(uint(status), uint(FraudBlocker.Status.Ended));
+        assertEq(
+            address(fraudBlocker).balance,
+            contractStartBalance - STAKEAMOUNT
+        );
+        assertEq(USER.balance, victimStartBalance + STAKEAMOUNT);
         assertEq(fraudBlocker.getIsAuditor(AUDITOR1), false);
-        assertEq(AUDITOR1.balance, STAKEAMOUNT);
-        assertEq(address(OWNER).balance, STAKEAMOUNT);
+        assertEq(fraudBlocker.getIsBlacklist(AUDITOR1), true);
+    }
+
+    function testVoteOnProposalDoesNotPass()
+        public
+        _submitProject
+        _stakeAsAuditor
+        _createProposal
+    {
+        uint256 contractStartBalance = address(fraudBlocker).balance;
+        uint256 victimStartBalance = USER.balance;
+
+        vm.prank(AUDITOR1);
+        fraudBlocker.voteOnProposal(0, false);
+        vm.warp(block.timestamp + VOTINGDURATION + 1);
+        vm.prank(AUDITOR2);
+        fraudBlocker.voteOnProposal(0, false);
+
+        (
+            ,
+            uint256 yesVotes,
+            uint256 noVotes,
+            FraudBlocker.Status status
+        ) = fraudBlocker.getProposalInfo(0);
+
+        assertEq(yesVotes, 0);
+        assertEq(noVotes, 2);
+        assertEq(uint(status), uint(FraudBlocker.Status.Ended));
+        assertEq(address(fraudBlocker).balance, contractStartBalance);
+        assertEq(USER.balance, victimStartBalance);
+        assertEq(fraudBlocker.getIsAuditor(AUDITOR1), true);
+        assertEq(fraudBlocker.getIsBlacklist(AUDITOR1), false);
     }
 }

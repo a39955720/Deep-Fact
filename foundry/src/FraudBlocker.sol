@@ -16,6 +16,7 @@ error FraudBlocker__YouAreOnTheBlacklist();
 error FraudBlocker__YouHaveAlreadyAuditedThisProject();
 error FraudBlocker__YouHaveAlreadyVoted();
 error FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
+error FraudBlocker__TheAuditorDoesNotExist();
 
 contract FraudBlocker is Ownable, ReentrancyGuard {
     enum Status {
@@ -38,7 +39,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     struct Proposal {
         uint256 id;
         uint256 projectId;
-        uint8 reportedUser;
+        uint8 reportedAuditor;
         uint256 startTime;
         uint256 yesVotes;
         uint256 noVotes;
@@ -163,15 +164,19 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
     function createProposal(
         uint256 _projectId,
-        uint8 _reportedUser
+        uint8 _reportedAuditor
     ) public onlyOwner {
         if (_projectId >= s_idCounter) {
             revert FraudBlocker__ProjectDoesNotExist();
         }
 
+        if (_reportedAuditor > 2) {
+            revert FraudBlocker__TheAuditorDoesNotExist();
+        }
+
         s_proposals[s_proposalIdCounter].id = s_proposalIdCounter;
         s_proposals[s_proposalIdCounter].projectId = _projectId;
-        s_proposals[s_proposalIdCounter].reportedUser = _reportedUser;
+        s_proposals[s_proposalIdCounter].reportedAuditor = _reportedAuditor;
         s_proposals[s_proposalIdCounter].startTime = block.timestamp;
         s_proposals[s_proposalIdCounter].status = Status.Pending;
         s_proposalIdCounter++;
@@ -209,7 +214,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
             ) {
                 blockAuditor(
                     s_projectData[s_proposals[_proposalId].projectId].auditor[
-                        s_proposals[_proposalId].reportedUser
+                        s_proposals[_proposalId].reportedAuditor
                     ],
                     s_projectData[s_proposals[_proposalId].projectId].submitter
                 );
@@ -246,7 +251,6 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         public
         view
         returns (
-            uint256 id,
             uint256 startTime,
             uint256 yesVotes,
             uint256 noVotes,
@@ -255,7 +259,6 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     {
         Proposal storage proposal = s_proposals[_id];
         return (
-            proposal.id,
             proposal.startTime,
             proposal.yesVotes,
             proposal.noVotes,
@@ -267,6 +270,10 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         address _auditor
     ) public view returns (uint256) {
         return s_lastAuditTimestamp[_auditor];
+    }
+
+    function getIsBlacklist(address _auditor) public view returns (bool) {
+        return s_blacklist[_auditor];
     }
 
     function getIsAuditor(address _auditor) public view returns (bool) {
@@ -297,5 +304,9 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
     function getLockupPeriod() public pure returns (uint256) {
         return LOCKUPPERIOD;
+    }
+
+    function getVotingDuration() public pure returns (uint256) {
+        return VOTINGDURATION;
     }
 }
