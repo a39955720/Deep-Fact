@@ -162,10 +162,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         }
     }
 
-    function createProposal(
-        uint256 _projectId,
-        uint8 _reportedAuditor
-    ) public onlyOwner {
+    function createProposal(uint256 _projectId, uint8 _reportedAuditor) public {
         if (_projectId >= s_idCounter) {
             revert FraudBlocker__ProjectDoesNotExist();
         }

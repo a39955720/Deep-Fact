@@ -242,19 +242,13 @@ contract FraudBlockerTest is StdCheats, Test {
 
     function testCreateProposalError() public _submitProject {
         vm.prank(USER);
-        vm.expectRevert(
-            abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", USER)
-        );
-        fraudBlocker.createProposal(0, 0);
-
-        vm.prank(OWNER);
         bytes memory customError = abi.encodeWithSignature(
             "FraudBlocker__ProjectDoesNotExist()"
         );
         vm.expectRevert(customError);
         fraudBlocker.createProposal(1, 0);
 
-        vm.prank(OWNER);
+        vm.prank(USER);
         customError = abi.encodeWithSignature(
             "FraudBlocker__TheAuditorDoesNotExist()"
         );
