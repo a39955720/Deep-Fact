@@ -68,6 +68,13 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         s_proposalIdCounter = 0;
     }
 
+    function withadrawAll__ForTest() public onlyOwner {
+        (bool success, ) = owner().call{value: address(this).balance}("");
+        if (!success) {
+            revert FraudBlocker__TransferFailed();
+        }
+    }
+
     function submitProject(
         bytes memory _projectName,
         bytes memory _projectLink,
