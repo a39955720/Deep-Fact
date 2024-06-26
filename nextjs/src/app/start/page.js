@@ -1,10 +1,10 @@
 "use client"
 import Head from "next/head"
-import Header from "../../components/Header"
-import Home from "../../components/Home"
-import Footer from "../../components/Footer"
+import Header from "../../../components/Header"
+import Start from "../../../components/Start"
+import Footer from "../../../components/Footer"
 
-export default function HomePage() {
+export default function StartPage() {
     return (
         <div className="bg-gray-300 flex-col min-h-screen">
             <Head>
@@ -13,7 +13,7 @@ export default function HomePage() {
                 <link rel="icon" href="/logo1.png" />
             </Head>
             <Header />
-            <Home />
+            <Start />
             <Footer />
         </div>
     )

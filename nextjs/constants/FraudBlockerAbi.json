@@ -12,14 +12,45 @@
     },
     {
         "type": "function",
-        "name": "blockAuditor",
-        "inputs": [{ "name": "auditor", "type": "address", "internalType": "address" }],
+        "name": "createProposal",
+        "inputs": [
+            { "name": "_projectId", "type": "uint256", "internalType": "uint256" },
+            { "name": "_reportedAuditor", "type": "uint8", "internalType": "uint8" }
+        ],
         "outputs": [],
-        "stateMutability": "payable"
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "getAuditFee",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "pure"
+    },
+    {
+        "type": "function",
+        "name": "getAuditReward",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "pure"
+    },
+    {
+        "type": "function",
+        "name": "getHandlingFee",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "pure"
     },
     {
         "type": "function",
         "name": "getIsAuditor",
+        "inputs": [{ "name": "_auditor", "type": "address", "internalType": "address" }],
+        "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getIsBlacklist",
         "inputs": [{ "name": "_auditor", "type": "address", "internalType": "address" }],
         "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
         "stateMutability": "view"
@@ -33,6 +64,13 @@
     },
     {
         "type": "function",
+        "name": "getLockupPeriod",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "pure"
+    },
+    {
+        "type": "function",
         "name": "getProjectData",
         "inputs": [{ "name": "_id", "type": "uint256", "internalType": "uint256" }],
         "outputs": [
@@ -42,10 +80,20 @@
                 "internalType": "struct FraudBlocker.ProjectData",
                 "components": [
                     { "name": "id", "type": "uint256", "internalType": "uint256" },
+                    {
+                        "name": "submitter",
+                        "type": "address",
+                        "internalType": "address"
+                    },
                     { "name": "projectName", "type": "bytes", "internalType": "bytes" },
                     { "name": "projectLink", "type": "bytes", "internalType": "bytes" },
                     {
                         "name": "projectDescription",
+                        "type": "bytes",
+                        "internalType": "bytes"
+                    },
+                    {
+                        "name": "aiAuditResult",
                         "type": "bytes",
                         "internalType": "bytes"
                     },
@@ -71,6 +119,29 @@
     },
     {
         "type": "function",
+        "name": "getProposalInfo",
+        "inputs": [{ "name": "_id", "type": "uint256", "internalType": "uint256" }],
+        "outputs": [
+            { "name": "startTime", "type": "uint256", "internalType": "uint256" },
+            { "name": "yesVotes", "type": "uint256", "internalType": "uint256" },
+            { "name": "noVotes", "type": "uint256", "internalType": "uint256" },
+            {
+                "name": "status",
+                "type": "uint8",
+                "internalType": "enum FraudBlocker.Status"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getStakeAmount",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "pure"
+    },
+    {
+        "type": "function",
         "name": "getSubmittedProjects",
         "inputs": [{ "name": "_submitter", "type": "address", "internalType": "address" }],
         "outputs": [{ "name": "", "type": "uint256[]", "internalType": "uint256[]" }],
@@ -82,6 +153,13 @@
         "inputs": [],
         "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
         "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getVotingDuration",
+        "inputs": [],
+        "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+        "stateMutability": "pure"
     },
     {
         "type": "function",
@@ -121,7 +199,8 @@
                 "name": "_projectDescription",
                 "type": "bytes",
                 "internalType": "bytes"
-            }
+            },
+            { "name": "_aiAuditResult", "type": "bytes", "internalType": "bytes" }
         ],
         "outputs": [],
         "stateMutability": "payable"
@@ -130,6 +209,16 @@
         "type": "function",
         "name": "transferOwnership",
         "inputs": [{ "name": "newOwner", "type": "address", "internalType": "address" }],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "voteOnProposal",
+        "inputs": [
+            { "name": "_proposalId", "type": "uint256", "internalType": "uint256" },
+            { "name": "_vote", "type": "bool", "internalType": "bool" }
+        ],
         "outputs": [],
         "stateMutability": "nonpayable"
     },
@@ -165,10 +254,16 @@
     },
     {
         "type": "error",
+        "name": "FraudBlocker__TheAuditorDoesNotExist",
+        "inputs": []
+    },
+    {
+        "type": "error",
         "name": "FraudBlocker__TheUserIsNotAnAuditor",
         "inputs": []
     },
     { "type": "error", "name": "FraudBlocker__TransferFailed", "inputs": [] },
+    { "type": "error", "name": "FraudBlocker__VotingHasEnded", "inputs": [] },
     {
         "type": "error",
         "name": "FraudBlocker__YouAreAlreadyAnAuditor",
@@ -183,6 +278,11 @@
     {
         "type": "error",
         "name": "FraudBlocker__YouHaveAlreadyAuditedThisProject",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "FraudBlocker__YouHaveAlreadyVoted",
         "inputs": []
     },
     {
