@@ -9,7 +9,29 @@ module.exports = {
         "./src/**/*.{js,ts,jsx,tsx,mdx}",
     ],
     theme: {
-        extend: {},
-    },
-    plugins: [],
+        extend: {
+          backgroundClip: {
+            text: 'text',
+          },
+          textFillColor: {
+            transparent: 'transparent',
+          },
+          backgroundImage: {
+            'gradient-to-right': 'linear-gradient(to right, transparent, blue)',
+          },
+        },
+      },
+      plugins: [
+        function ({ addUtilities }) {
+          addUtilities({
+            '.gradient-text': {
+              'background-image': 'linear-gradient(to right, transparent, blue)',
+              '-webkit-background-clip': 'text',
+              '-webkit-text-fill-color': 'transparent',
+            },
+          });
+        },
+      ],
 }
+
+

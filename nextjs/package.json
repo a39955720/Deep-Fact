@@ -18,8 +18,10 @@
         "openai": "^4.52.0",
         "react": "18.2.0",
         "react-dom": "18.2.0",
+        "react-dropdown": "^1.11.0",
         "react-moralis": "^1.4.2",
         "rpc-websockets": "7.10.0",
+        "three": "^0.165.0",
         "web3uikit": "^1.0.4"
     },
     "devDependencies": {
