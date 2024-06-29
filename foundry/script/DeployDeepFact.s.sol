@@ -2,23 +2,23 @@
 pragma solidity 0.8.26;
 
 import {Script} from "forge-std/Script.sol";
-import {FraudBlocker} from "../src/FraudBlocker.sol";
+import {DeepFact} from "../src/DeepFact.sol";
 
-contract DeployFraudBlocker is Script {
+contract DeployDeepFact is Script {
     uint256 public DEFAULT_ANVIL_PRIVATE_KEY =
         0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
 
-    function run() external returns (FraudBlocker) {
+    function run() external returns (DeepFact) {
         if (block.chainid == 48899) {
             vm.startBroadcast();
-            FraudBlocker fraudBlocker = new FraudBlocker();
+            DeepFact deepFact = new DeepFact();
             vm.stopBroadcast();
-            return fraudBlocker;
+            return deepFact;
         } else {
             vm.startBroadcast(DEFAULT_ANVIL_PRIVATE_KEY);
-            FraudBlocker fraudBlocker = new FraudBlocker();
+            DeepFact deepFact = new DeepFact();
             vm.stopBroadcast();
-            return fraudBlocker;
+            return deepFact;
         }
     }
 }

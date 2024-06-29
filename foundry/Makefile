@@ -30,7 +30,7 @@ coverage :; forge coverage --report debug > coverage.txt
 NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
 
 Deploy:
-	@forge script script/DeployFraudBlocker.s.sol:DeployFraudBlocker --rpc-url $(ZIRCUIT_RPC_URL) --account deployer --broadcast
+	@forge script script/DeployDeepFact.s.sol:DeployDeepFact --rpc-url $(ZIRCUIT_RPC_URL) --account deployer --broadcast
 
 Verify:
-	@forge verify-contract --verifier-url https://explorer.zircuit.com/api/contractVerifyHardhat 0xc0AaA8D031B9e197cEe9BA6D34E873384c3D6135 src/FraudBlocker.sol:FraudBlocker --root . --etherscan-api-key $(ZIRCUIT_API_KEY)
+	@forge verify-contract --verifier-url https://explorer.zircuit.com/api/contractVerifyHardhat 0x003320742a1D147bcF1E987a3E85dD6d8B0d0330 src/DeepFact.sol:DeepFact --root . --etherscan-api-key $(ZIRCUIT_API_KEY)

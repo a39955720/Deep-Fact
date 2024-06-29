@@ -4,21 +4,21 @@ pragma solidity 0.8.26;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-error FraudBlocker__InsufficientAmount();
-error FraudBlocker__ProjectDoesNotExist();
-error FraudBlocker__AuditHasEnded();
-error FraudBlocker__VotingHasEnded();
-error FraudBlocker__YouAreNotAuditor();
-error FraudBlocker__YouAreAlreadyAnAuditor();
-error FraudBlocker__TheUserIsNotAnAuditor();
-error FraudBlocker__TransferFailed();
-error FraudBlocker__YouAreOnTheBlacklist();
-error FraudBlocker__YouHaveAlreadyAuditedThisProject();
-error FraudBlocker__YouHaveAlreadyVoted();
-error FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
-error FraudBlocker__TheAuditorDoesNotExist();
+error DeepFact__InsufficientAmount();
+error DeepFact__ProjectDoesNotExist();
+error DeepFact__AuditHasEnded();
+error DeepFact__VotingHasEnded();
+error DeepFact__YouAreNotAuditor();
+error DeepFact__YouAreAlreadyAnAuditor();
+error DeepFact__TheUserIsNotAnAuditor();
+error DeepFact__TransferFailed();
+error DeepFact__YouAreOnTheBlacklist();
+error DeepFact__YouHaveAlreadyAuditedThisProject();
+error DeepFact__YouHaveAlreadyVoted();
+error DeepFact__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
+error DeepFact__TheAuditorDoesNotExist();
 
-contract FraudBlocker is Ownable, ReentrancyGuard {
+contract DeepFact is Ownable, ReentrancyGuard {
     enum Status {
         Pending,
         Ended
@@ -71,7 +71,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     function withadrawAll__ForTest() public onlyOwner {
         (bool success, ) = owner().call{value: address(this).balance}("");
         if (!success) {
-            revert FraudBlocker__TransferFailed();
+            revert DeepFact__TransferFailed();
         }
     }
 
@@ -82,7 +82,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         bytes memory _aiAuditResult
     ) public payable {
         if (msg.value != AUDITFEE) {
-            revert FraudBlocker__InsufficientAmount();
+            revert DeepFact__InsufficientAmount();
         }
 
         s_projectData[s_idCounter].id = s_idCounter;
@@ -98,7 +98,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
         (bool success, ) = owner().call{value: HANDLINGFEE}("");
         if (!success) {
-            revert FraudBlocker__TransferFailed();
+            revert DeepFact__TransferFailed();
         }
     }
 
@@ -107,20 +107,20 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         bytes memory _auditResult
     ) public nonReentrant {
         if (_projectId >= s_idCounter) {
-            revert FraudBlocker__ProjectDoesNotExist();
+            revert DeepFact__ProjectDoesNotExist();
         }
         if (s_projectData[_projectId].status == Status.Ended) {
-            revert FraudBlocker__AuditHasEnded();
+            revert DeepFact__AuditHasEnded();
         }
         if (s_isAuditor[msg.sender] == false) {
-            revert FraudBlocker__YouAreNotAuditor();
+            revert DeepFact__YouAreNotAuditor();
         }
 
         for (uint256 i = 0; i < 3; i++) {
             if (s_projectData[_projectId].auditor[i] == address(0)) {
                 for (uint256 j = 0; j < i; j++) {
                     if (s_projectData[_projectId].auditor[j] == msg.sender) {
-                        revert FraudBlocker__YouHaveAlreadyAuditedThisProject();
+                        revert DeepFact__YouHaveAlreadyAuditedThisProject();
                     }
                 }
                 s_projectData[_projectId].auditor[i] = msg.sender;
@@ -131,7 +131,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
                 }
                 (bool success, ) = msg.sender.call{value: AUDITREWARD}("");
                 if (!success) {
-                    revert FraudBlocker__TransferFailed();
+                    revert DeepFact__TransferFailed();
                 }
                 break;
             }
@@ -140,13 +140,13 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
     function stakeAsAuditor() public payable {
         if (msg.value != STAKEAMOUNT) {
-            revert FraudBlocker__InsufficientAmount();
+            revert DeepFact__InsufficientAmount();
         }
         if (s_isAuditor[msg.sender] == true) {
-            revert FraudBlocker__YouAreAlreadyAnAuditor();
+            revert DeepFact__YouAreAlreadyAnAuditor();
         }
         if (s_blacklist[msg.sender] == true) {
-            revert FraudBlocker__YouAreOnTheBlacklist();
+            revert DeepFact__YouAreOnTheBlacklist();
         }
 
         s_isAuditor[msg.sender] = true;
@@ -154,28 +154,28 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
     function revokeAndWithdrawStake() public nonReentrant {
         if (s_isAuditor[msg.sender] == false) {
-            revert FraudBlocker__TheUserIsNotAnAuditor();
+            revert DeepFact__TheUserIsNotAnAuditor();
         }
 
         if (s_lastAuditTimestamp[msg.sender] + LOCKUPPERIOD > block.timestamp) {
-            revert FraudBlocker__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
+            revert DeepFact__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
         }
 
         s_isAuditor[msg.sender] = false;
 
         (bool success, ) = msg.sender.call{value: STAKEAMOUNT}("");
         if (!success) {
-            revert FraudBlocker__TransferFailed();
+            revert DeepFact__TransferFailed();
         }
     }
 
     function createProposal(uint256 _projectId, uint8 _reportedAuditor) public {
         if (_projectId >= s_idCounter) {
-            revert FraudBlocker__ProjectDoesNotExist();
+            revert DeepFact__ProjectDoesNotExist();
         }
 
         if (_reportedAuditor > 2) {
-            revert FraudBlocker__TheAuditorDoesNotExist();
+            revert DeepFact__TheAuditorDoesNotExist();
         }
 
         s_proposals[s_proposalIdCounter].id = s_proposalIdCounter;
@@ -188,16 +188,16 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
 
     function voteOnProposal(uint256 _proposalId, bool _vote) public {
         if (_proposalId >= s_proposalIdCounter) {
-            revert FraudBlocker__ProjectDoesNotExist();
+            revert DeepFact__ProjectDoesNotExist();
         }
         if (s_proposals[_proposalId].status == Status.Ended) {
-            revert FraudBlocker__VotingHasEnded();
+            revert DeepFact__VotingHasEnded();
         }
         if (s_isAuditor[msg.sender] == false) {
-            revert FraudBlocker__YouAreNotAuditor();
+            revert DeepFact__YouAreNotAuditor();
         }
         if (s_proposals[_proposalId].isVoted[msg.sender] == true) {
-            revert FraudBlocker__YouHaveAlreadyVoted();
+            revert DeepFact__YouHaveAlreadyVoted();
         }
 
         if (_vote) {
@@ -235,7 +235,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         s_blacklist[auditor] = true;
         (bool success, ) = victim.call{value: STAKEAMOUNT}("");
         if (!success) {
-            revert FraudBlocker__TransferFailed();
+            revert DeepFact__TransferFailed();
         }
     }
 
@@ -259,6 +259,9 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         public
         view
         returns (
+            uint256 id,
+            uint256 projectId,
+            uint8 reportedAuditor,
             uint256 startTime,
             uint256 yesVotes,
             uint256 noVotes,
@@ -267,6 +270,9 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     {
         Proposal storage proposal = s_proposals[_id];
         return (
+            proposal.id,
+            proposal.projectId,
+            proposal.reportedAuditor,
             proposal.startTime,
             proposal.yesVotes,
             proposal.noVotes,
