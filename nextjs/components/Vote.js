@@ -113,7 +113,7 @@ export default function Vote() {
                 const projectData = await contract.getProjectData(projectId[i])
                 const decodedName = abi.decode(["string"], projectData[2])
                 const decodedLink = abi.decode(["string"], projectData[3])
-                const decodedDescription = abi.decode(["string"], projectData[4])
+                const decodedDescription = abi.decode(["string"], projectData[4])``
                 const decodedAuditResult = abi.decode(["string"], projectData[7][reportedAuditor[i]])
 
                 reportedAuditors[i] = []

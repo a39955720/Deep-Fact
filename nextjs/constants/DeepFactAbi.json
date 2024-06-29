@@ -282,6 +282,7 @@
     "name": "DeepFact__TheAuditorDoesNotExist",
     "inputs": []
   },
+  { "type": "error", "name": "DeepFact__TheProposalIsCreated", "inputs": [] },
   {
     "type": "error",
     "name": "DeepFact__TheUserIsNotAnAuditor",

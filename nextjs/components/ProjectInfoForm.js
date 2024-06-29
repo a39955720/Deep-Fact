@@ -88,7 +88,6 @@ export default function Home() {
     }
 
     async function createProposal(index) {
-        console.log(submittedProjects[currentIndex].toString()," + " ,index)
         setIsLoading(true)
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const signer = provider.getSigner()
