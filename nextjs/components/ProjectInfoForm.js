@@ -221,16 +221,16 @@ export default function Home() {
                     <div class="flex flex-col">
                         <p class="text-gray-500 font-semibold text-xl">{_auditor[currentIndex][i]}</p>
                         <p class="text-black text-base mt-3 break-words">{_auditorAuditResult[currentIndex][i]}</p>
-                        {/* <div
+                        <div
                             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded mr-10 w-full h-12"
-                            onClick={createProposal(i)}
+                            onClick={() => createProposal(i)}
                         >
                             {isLoading ? (
                                 <div className="animate-spin bg-blue-600 spinner-border h-8 w-8 border-b-2 rounded-full"></div>
                             ) : (
                                 "Report"
                             )}
-                        </d> */}
+                        </div>
                     </div>
                 </div>,
             )

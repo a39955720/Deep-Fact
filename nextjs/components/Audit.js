@@ -263,7 +263,7 @@ export default function Audit() {
                         <div className="container mx-auto p-4">
                             <button
                                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded mr-10 w-full h-12"
-                                onClick={revokeAndWithdrawStake()}
+                                onClick={() => revokeAndWithdrawStake()}
                             >
                                 {isLoading ? (
                                     <div className="animate-spin bg-blue-600 spinner-border h-8 w-8 border-b-2 rounded-full"></div>
