@@ -243,6 +243,10 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
         return s_idCounter;
     }
 
+    function getTotalProposal() public view returns (uint256) {
+        return s_proposalIdCounter;
+    }
+
     function getProjectData(
         uint256 _id
     ) public view returns (ProjectData memory) {
