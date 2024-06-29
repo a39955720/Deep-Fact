@@ -17,6 +17,7 @@ error DeepFact__YouHaveAlreadyAuditedThisProject();
 error DeepFact__YouHaveAlreadyVoted();
 error DeepFact__YouHaveToWaitThreeDaysAfterAuditBeforeRevoke();
 error DeepFact__TheAuditorDoesNotExist();
+error DeepFact__TheProposalIsCreated();
 
 contract DeepFact is Ownable, ReentrancyGuard {
     enum Status {
@@ -62,6 +63,7 @@ contract DeepFact is Ownable, ReentrancyGuard {
     mapping(address => uint256) private s_lastAuditTimestamp;
     mapping(address => bool) private s_isAuditor;
     mapping(address => bool) private s_blacklist;
+    mapping(uint256 => bool) private s_isCreated;
 
     constructor() Ownable(msg.sender) {
         s_idCounter = 0;
@@ -178,6 +180,11 @@ contract DeepFact is Ownable, ReentrancyGuard {
             revert DeepFact__TheAuditorDoesNotExist();
         }
 
+        if (s_isCreated[_projectId]) {
+            revert DeepFact__TheProposalIsCreated();
+        }
+
+        s_isCreated[_projectId] = true;
         s_proposals[s_proposalIdCounter].id = s_proposalIdCounter;
         s_proposals[s_proposalIdCounter].projectId = _projectId;
         s_proposals[s_proposalIdCounter].reportedAuditor = _reportedAuditor;

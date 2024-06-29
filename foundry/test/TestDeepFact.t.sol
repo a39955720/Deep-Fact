@@ -51,7 +51,7 @@ contract DeepFactTest is StdCheats, Test {
     }
 
     modifier _createProposal() {
-        vm.prank(OWNER);
+        vm.prank(USER);
         deepFact.createProposal(0, 0);
         _;
     }
@@ -245,12 +245,20 @@ contract DeepFactTest is StdCheats, Test {
         vm.expectRevert(customError);
         deepFact.createProposal(1, 0);
 
-        vm.prank(USER);
+        vm.startPrank(USER);
         customError = abi.encodeWithSignature(
             "DeepFact__TheAuditorDoesNotExist()"
         );
         vm.expectRevert(customError);
         deepFact.createProposal(0, 3);
+
+        deepFact.createProposal(0, 0);
+        customError = abi.encodeWithSignature(
+            "DeepFact__TheProposalIsCreated()"
+        );
+        vm.expectRevert(customError);
+        deepFact.createProposal(0, 0);
+        vm.stopPrank();
     }
 
     function testCreateProposal()
