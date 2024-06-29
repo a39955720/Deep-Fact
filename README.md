@@ -1,4 +1,4 @@
-# Deep-Fact
+# DeepFact
 
 ## Table of Contents
 
@@ -92,9 +92,9 @@ Deploying to Testnet or Mainnet
 
 ```plaintext
 PRIVATE_KEY=your_ethereum_private_key
-ZIRCUIT_RPC_URL=https://zircuit.network/your_rpc_url
+ZIRCUIT_RPC_URL='https://zircuit1.p2pify.com/'
 ZIRCUIT_API_KEY=your_zircuit_api_key
-OPTIMISM_RPC_URL=https://optimism.io/your_rpc_url
+OPTIMISM_RPC_URL='https://sepolia.optimism.io'
 OPTIMISM_ETHERSCAN_API_KEY=your_optimism_etherscan_api_key
 ```
 
