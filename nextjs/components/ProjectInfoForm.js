@@ -88,12 +88,13 @@ export default function Home() {
     }
 
     async function createProposal(index) {
+        console.log(submittedProjects[currentIndex].toString()," + " ,index)
         setIsLoading(true)
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const signer = provider.getSigner()
         const contract = new ethers.Contract(contractAddress, DeepFactAbi, signer)
         try {
-            const transactionResponse = await contract.createProposal(currentIndex, index)
+            const transactionResponse = await contract.createProposal(submittedProjects[currentIndex], index)
             const str = "Reported successfully"
             await listenForTransactionMine(transactionResponse, provider, str)
         } catch (error) {
