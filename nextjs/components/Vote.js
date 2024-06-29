@@ -158,7 +158,7 @@ export default function Vote() {
         const signer = provider.getSigner()
         const contract = new ethers.Contract(contractAddress, DeepFactAbi, signer)
         try {
-            const transactionResponse = await contract.voteOnProposal(proposalId[(currentIndex, yesOrNo)])
+            const transactionResponse = await contract.voteOnProposal(proposalId[currentIndex], yesOrNo)
             const str = "Successfully voted"
             await listenForTransactionMine(transactionResponse, provider, str)
         } catch (error) {
@@ -178,7 +178,7 @@ export default function Vote() {
             try {
                 provider.once(transactionResponse.hash, (transactionReceipt) => {
                     setResults(str)
-                    setshowModal_1(true)
+                    setShowModal_1(true)
                     setIsLoading(false)
                     resolve()
                 })
