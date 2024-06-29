@@ -228,7 +228,7 @@ export default function Home() {
     }
 
     return (
-        <div className="flex mt-10">
+        <div className="flex mt-10" style={{ fontFamily: 'Space Mono, monospace' }}>
             {isWeb3Enabled && chainId == "48899" ? (
                 <div className="flex justify-center w-full min-h-screen">
                     <div className="w-5/6 mb-10">

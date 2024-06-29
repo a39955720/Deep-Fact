@@ -13,6 +13,7 @@ export default function History() {
     const chainId = parseInt(chainIdHex)
     const [submittedProjects, setSubmittedProjects] = useState("")
     const [filteredProjects, setFilteredProjects] = useState([])  // Added state for filtered projects
+    const [filteredIndices, setFilteredIndices] = useState([]);
     const [error, setError] = useState("")
     const [timestamps, setTimestamps] = useState([])
     const [currentIndex, setCurrentIndex] = useState("")
@@ -94,12 +95,18 @@ export default function History() {
     }
 
     const handleFilterSelect = (option) => {
-        if (option.value === 'Sort by Time') {
-            const sortedProjects = sortProjectsByTime(submittedProjects, timestamps)
-            setFilteredProjects(sortedProjects)
-        } else if (option.value === 'Filter by Answered') {
-            const filteredProjects = filterProjectsWithAuditorResponses(submittedProjects, _auditor)
-            setFilteredProjects(filteredProjects)
+        if (option.value === 'Sort by Time (Old to New)') {
+            const sortedProjects = sortProjectsByTime(submittedProjects, timestamps);
+            setFilteredProjects(sortedProjects);
+        } 
+        else if (option.value === 'Sort by Time (New to Old)') {
+            const sortedProjects = sortProjectsByTime(submittedProjects, timestamps).reverse();
+            setFilteredProjects(sortedProjects);
+        }
+        else if (option.value === 'Filter by Answered') {
+            const filteredProjectIndices = filterProjectsWithAuditorResponses(submittedProjects, _auditor);
+            const filteredProjects = filteredProjectIndices.map(index => submittedProjects[index]);
+            setFilteredProjects(filteredProjects);
         }
     }
 
@@ -113,42 +120,38 @@ export default function History() {
     const cards = []
     const cards1 = []
 
-    const displayProjects = filteredProjects.length > 0 ? filteredProjects : submittedProjects
+    const displayProjects = filteredProjects.length > 0 ? filteredProjects : submittedProjects;
 
-    for (let i = 0; i < displayProjects.length; i++) {
+
+    for (let project of displayProjects) {
+        const index = submittedProjects.findIndex(p => p.toHexString() === project.toHexString());
         cards.push(
             <div
+                key={index}
                 className="w-full mt-5 bg-gray-200 rounded-lg shadow-md p-6 cursor-pointer transition duration-300 ease-in-out transform hover:bg-gray-300 hover:shadow-lg"
-                onClick={() => handleClick(i)}
+                onClick={() => handleClick(index)}
             >
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center custom-link">
                     <img src="/icon.svg" alt="Project Icon" className="w-12 h-12 mb-4" />
-                    <h3 className="text-2xl font-semibold" style={{ color: 'black' }}>{_name[i]}</h3>
+                    <h3 className="text-2xl font-semibold" style={{ color: 'black' }}>{_name[index]}</h3>
                     <p className="text-gray-700 mt-2">
-                        {_description[i] && _description[i].length > 200
-                            ? _description[i].slice(0, 200) + "..."
-                            : _description[i]}
+                        {_description[index] && _description[index].length > 200
+                            ? _description[index].slice(0, 200) + "..."
+                            : _description[index]}
                     </p>
                     <a className="text-blue-500 underline mt-2">See Report</a>
                 </div>
             </div>
-        )
+        );
     }
 
-    cards1.push(
-        <div className="bg-gray-200 mt-5 rounded-lg shadow-md p-4 w-full">
-            <div className="flex flex-col">
-                <p className="text-gray-500 font-semibold text-xl">AI audit results</p>
-                <p className="text-black text-base mt-3 break-words">{_aiAuditResult[currentIndex]}</p>
-            </div>
-        </div>
-    )
+
     for (let i = 0; i < 3; i++) {
         if (_auditor[currentIndex] && _auditor[currentIndex][i] == "0x0000000000000000000000000000000000000000") {
             break
         } else if (_auditor[currentIndex]) {
             cards1.push(
-                <div className="bg-gray-200 mt-5 rounded-lg shadow-md p-4 w-full">
+                <div className="bg-gray-200 mt-5 rounded-lg shadow-md p-4 w-full" style={{color:"black"}}>
                     <div className="flex flex-col">
                         <p className="text-gray-500 font-semibold text-xl">{_auditor[currentIndex][i]}</p>
                         <p className="text-black text-base mt-3 break-words">{_auditorAuditResult[currentIndex][i]}</p>
@@ -157,9 +160,17 @@ export default function History() {
             )
         }
     }
+    // cards1.push(
+    //     <div className="bg-gray-200 mt-5 rounded-lg shadow-md p-4 w-full">
+    //         <div className="flex flex-col">
+    //             <p className="text-gray-500 font-semibold text-xl">AI audit results</p>
+    //             <p className="text-black text-base mt-3 break-words">{_aiAuditResult[currentIndex]}</p>
+    //         </div>
+    //     </div>
+    // )
 
     return (
-        <div className="flex mt-10">
+        <div className="flex mt-10" style={{ fontFamily: 'Space Mono, monospace' }}>
             {isWeb3Enabled && chainId == "48899" ? (
                 <div className="flex justify-center w-full min-h-screen">
                     <div className="w-5/6 mb-10">
@@ -173,28 +184,70 @@ export default function History() {
                                     >
                                         X
                                     </button>
-                                    <h1 className="text-3xl font-semibold mt-10 ml-5 mb-5" style={{color :"black"}}>{_name[currentIndex]}</h1>
-                                    <a href={_link[currentIndex]} className="text-blue-500 text-xl ml-5">
-                                        {_link[currentIndex]}
-                                    </a>
-                                    <p
-                                        className="text-black text-xl mt-5 ml-5 break-words"
-                                        style={{ whiteSpace: "pre-wrap" }}
-                                    >
-                                        {_description[currentIndex]}
-                                    </p>
-                                    <div className="flex flex-wrap mt-5">{cards1}</div>
+                                    <div className="grid grid-cols-2 gap-4 mb-10 h-72">
+                                        <div>
+                                            <h3 className="text-2xl font-bold mb-2" style={{color :"black"}}>The Project Name</h3>
+                                            <div className="bg-gray-100 p-4 rounded" style={{color:"black"}}>{_name[currentIndex]}</div>
+                                        </div>
+                                        <div className="row-span-2 mb-20">
+                                            <h3 className="text-2xl font-bold mb-2" style={{color :"black"}}>Your Concerns & Some descriptions</h3>
+                                            <div className="bg-gray-100 p-4 rounded break-words h-full" style={{ whiteSpace: "pre-wrap", color: "black" }}>{_description[currentIndex]}</div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-bold mb-2" style={{color :"black"}}>The Project Link</h3>
+                                            <a href={_link[currentIndex]} className="bg-gray-100 p-4 rounded block text-blue-500" style={{color:"black"}}>{_link[currentIndex]}</a>
+                                        </div>
+                                    </div>
+                                    <hr className="mb-5" />
+                                    <div className="mb-10">
+                                        <div className="flex justify-center items-center mb-5">
+                                            <img src="/expert_logo.svg" className="w-16 h-16 mr-4" alt="Expert Logo" />
+                                            <h3 className="text-4xl font-bold" style={{color :"black"}}>Human Auditors</h3>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-10 h-96">
+                                            {Array.from({ length: 3 }).map((_, index) => (
+                                                <div key={index} className="bg-gray-200 p-4 rounded-lg shadow-md flex items-center justify-center">
+                                                    {index < _auditor[currentIndex].length && _auditor[currentIndex][index] !== "0x0000000000000000000000000000000000000000" ? (
+                                                        <div className="flex flex-col h-full w-full p-4">
+                                                            <div className="flex items-start mb-4">
+                                                                <img src="/expert.svg" className="w-20 h-20 mr-4 mt-1" />
+                                                                <div>
+                                                                    <p className="text-xl font-bold text-black">Respond #{index + 1}</p>
+                                                                    <p className="text-sm text-black break-all ">From: <br/>{_auditor[currentIndex][index]}</p>
+                                                                </div>
+                                                            </div>
+                                                            <p className="mt-2 text-black">{_auditorAuditResult[currentIndex][index]}</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-center h-full flex items-center justify-center">
+                                                            <p className="text-2xl" style={{color:"black"}}>No respond yet...</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <hr className="mb-5" />
+                                    <div>
+                                        <div className="flex justify-center items-center mb-5">
+                                            <img src="/AI-generated.svg" className="w-16 h-16 mr-4" alt="AI Generated Logo" />
+                                            <h3 className="text-4xl font-bold gradient-text-AI">AI-Generated Response</h3>
+                                        </div>
+                                        <div className="bg-gray-100 p-4 rounded break-words" style={{ whiteSpace: "pre-wrap", color: "black" }}>{_aiAuditResult[currentIndex]}</div>
+                                    </div>
                                 </div>
                             </div>
                         )}
                         <div className="flex justify-between items-center mb-8">
-                            <h2 className="gradient-text text-4xl font-bold">Project Space</h2>
+                            <h2 className="gradient-text text-8xl font-bold">Project Space</h2>
                             <div className="bg-gray-100 text-gray-800 py-2 px-4 rounded-lg">
                                 {account}
                             </div>
                         </div>
                         <p className="text-2xl mb-4" style={{color:"black"}}>Hi, {account}</p>
-                        <p className="text-xl mb-8" style={{color:"black"}}>You have submitted :</p>
+                        <div className="flex justify-center items-center mb-8">
+                            <p className="text-5xl mt-20 font-bold" style={{color:"black"}}>History Asked Questions</p>
+                        </div>
                         <div className="flex justify-end mb-4">
                             <Dropdown 
                                 options={options} 
@@ -207,7 +260,7 @@ export default function History() {
                 </div>
             ) : (
                 <div className="flex flex-col items-start mt-10 min-h-screen">
-                    <div className="ml-10 text-xl">Please connect to a wallet and switch to Zircuit Testnet.</div>
+                    <div className="ml-10 text-xl" style={{color:"black"}}>Please connect to a wallet and switch to Zircuit Testnet.</div>
                     <button
                         onClick={() => {
                             handleNetworkSwitch("zircuit", setError)

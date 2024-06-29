@@ -1,6 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Verdana&display=swap');
+
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -77,6 +80,9 @@ html, body {
 .text-white {
   color: #fff;
 }
+.text-black {
+  color: #000000;
+}
 
 .text-7xl {
   font-size: 4.5rem;
@@ -92,6 +98,10 @@ html, body {
 
 .text-xl {
   font-size: 1.25rem;
+}
+
+.text-deepfact {
+  font-size: 12.5rem;
 }
 
 .mt-4 {
@@ -139,4 +149,38 @@ html, body {
   background: linear-gradient(to right, rgba(47, 180, 209, 0.665), rgb(0, 170, 255));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+body {
+  font-family: 'Space Mono', monospace;
+}
+
+black {
+  color: black
+}
+/* Add this to your global CSS file or inside a <style> tag in your component */
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-text-AI {
+  background: linear-gradient(270deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+  background-size: 800% 800%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientFlow 10s ease infinite;
+}
+
+.custom-link {
+  transition: transform 0.6s ease; /* Adjust the duration to control the speed */
+}
+
+.custom-link:hover {
+  transform: scale(1.1); /* Increase the size to 110% when hovered */
+}
+
+.bg-custom-blue {
+  background: #315a87
 }

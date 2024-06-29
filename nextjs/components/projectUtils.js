@@ -11,11 +11,15 @@ export const sortProjectsByTime = (projects, timestamps) => {
     return projectWithTimestamps.map(item => item.project)
 }
 export const options = [
-    { value: 'Sort by Time', label: 'Sort by Time (Older to Newest)' },
+    { value: 'Sort by Time (Old to New)', label: 'Sort by Time (Old to New)' },
+    { value: 'Sort by Time (New to Old)', label: 'Sort by Time (New to Old)' },
     { value: 'Filter by Answered', label: 'Filter by Answered' }
 ]
 export const filterProjectsWithAuditorResponses = (projects, auditors) => {
-    return projects.filter((_, index) => {
-        return auditors[index].some(auditor => auditor !== "0x0000000000000000000000000000000000000000")
-    })
+    return projects.reduce((acc, project, index) => {
+        if (auditors[index].some(auditor => auditor !== "0x0000000000000000000000000000000000000000")) {
+            acc.push(index);
+        }
+        return acc;
+    }, []);
 }

@@ -10,6 +10,9 @@ module.exports = {
     ],
     theme: {
         extend: {
+          color:{
+            'dark-blue-900': '#1e3a8a'
+          },
           backgroundClip: {
             text: 'text',
           },

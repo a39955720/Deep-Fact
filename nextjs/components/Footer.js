@@ -5,7 +5,7 @@ import Link from "next/link"
 
 export default function Footer() {
     return (
-        <footer className="flex items-center justify-center p-5 bg-gray-800 text-white">
+        <footer className="flex items-center justify-center p-5 bg-gray-800 text-white" style={{ fontFamily: 'Space Mono, monospace' }}>
 <div className="flex justify-between items-center w-full px-4 py-2 text-white">
     <p>© 2024 DeepFact - All Rights Reserved</p>
     <div className="flex flex-row items-center space-x-10">
