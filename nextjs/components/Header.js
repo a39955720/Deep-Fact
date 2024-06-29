@@ -1,9 +1,12 @@
-import { ConnectButton } from "web3uikit";
-import Link from "next/link";
+import { ConnectButton } from "web3uikit"
+import Link from "next/link"
 
 export default function Header() {
     return (
-        <nav className="p-5 border-b-10 flex flex-row justify-between items-center bg-black bg-opacity-50" style={{ fontFamily: 'Verdana' }}>
+        <nav
+            className="p-5 border-b-10 flex flex-row justify-between items-center bg-black bg-opacity-50"
+            style={{ fontFamily: "Verdana" }}
+        >
             <div className="flex items-center">
                 <Link href="/home" legacyBehavior>
                     <h1 className="font-orbitron text-white py-4 px-4 font-bold text-4xl ml-5">DeepFact</h1>
@@ -28,5 +31,5 @@ export default function Header() {
                 </div>
             </div>
         </nav>
-    );
+    )
 }

@@ -3,26 +3,32 @@ import { useMoralis, useWeb3Contract } from "react-moralis"
 import { ethers } from "ethers"
 import { DeepFactAbi, ZircuitContractAddress, OptimismContractAddress } from "../constants"
 import { handleNetworkSwitch, networks } from "./networkUtils"
-import Link from "next/link"
 
-export default function Audit() {
+export default function Vote() {
     const { isWeb3Enabled, chainId: chainIdHex, account } = useMoralis()
     const chainId = parseInt(chainIdHex)
     const [isAuditor, setIsAuditor] = useState(false)
     const [showModal_1, setShowModal_1] = useState(false)
-    const [showModal_2, setshowModal_1] = useState(false)
+    const [showModal_2, setShowModal_2] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [currentIndex, setCurrentIndex] = useState("")
-    const [auditReport, setAuditReport] = useState("")
     const [results, setResults] = useState("")
-    const [totalProject, setTotalProject] = useState("")
-    const [totoalPendingProject, setTotoalPendingProject] = useState([])
+    const [totalProposal, setTotalProposal] = useState("")
+    const [totoalPendingProposal, setTotoalPendingProposal] = useState("")
+    const [proposalId, setProposalId] = useState([])
+    const [projectId, setProjectId] = useState([])
+    const [reportedAuditor, setReportedAuditor] = useState([])
+    const [currentIndex, setCurrentIndex] = useState("")
+    const [startTime, setStartTime] = useState([])
+    const [yesVotes, setYesVotes] = useState([])
+    const [noVotes, setNoVotes] = useState([])
     const [name, setName] = useState([])
     const [link, setLink] = useState([])
+    const [_reportedAuditor, setReportedAuditors] = useState([])
+    const [auditResult, setAuditResult] = useState([])
     const [description, setDescription] = useState([])
     const abi = ethers.utils.defaultAbiCoder
     const cards = []
-    
+
     const getContractAddress = () => {
         switch (chainId) {
             case 48899:
@@ -37,9 +43,9 @@ export default function Audit() {
     const contractAddress = getContractAddress()
 
     async function getIsAuditor() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
         try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
             const _isAuditor = await contract.getIsAuditor(account)
             setIsAuditor(_isAuditor)
         } catch (error) {
@@ -47,43 +53,83 @@ export default function Audit() {
         }
     }
 
-    async function getTotalProject() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
+    async function getTotalProposal() {
         try {
-            const _totalProject = await contract.getTotalProject()
-            setTotalProject(_totalProject)
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
+            const _totalProposal = await contract.getTotalProposal()
+            setTotalProposal(_totalProposal)
+        } catch (error) {
+            console.error("Error:", error)
+        }
+    }
+
+    async function getProposalInfo() {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
+            const _proposalId = []
+            const _projectId = []
+            const _reportedAuditor = []
+            const _startTime = []
+            const _yesVotes = []
+            const _noVotes = []
+            let _totoalPendingProposal = 0
+            for (let i = 0; i < totalProposal; i++) {
+                const totalProposalInfo = await contract.getProposalInfo(i)
+                if (totalProposalInfo[6] == 0) {
+                    _proposalId[i] = totalProposalInfo[0]
+                    _projectId[i] = totalProposalInfo[1]
+                    _reportedAuditor[i] = totalProposalInfo[2]
+                    _startTime[i] = totalProposalInfo[3]
+                    _yesVotes[i] = totalProposalInfo[4]
+                    _noVotes[i] = totalProposalInfo[5]
+                    _totoalPendingProposal++
+                }
+            }
+            setTotoalPendingProposal(_totoalPendingProposal)
+            setProposalId(_proposalId)
+            setProjectId(_projectId)
+            setReportedAuditor(_reportedAuditor)
+            setStartTime(_startTime)
+            setYesVotes(_yesVotes)
+            setNoVotes(_noVotes)
         } catch (error) {
             console.error("Error:", error)
         }
     }
 
     async function getProjectData() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
         try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
             const names = []
             const links = []
             const descriptions = []
-            let _totalPendingProject = 0
+            const reportedAuditors = []
+            const auditResults = []
 
-            for (let i = 0; i < totalProject; i++) {
-                const projectData = await contract.getProjectData(i)
-                if (projectData[8] == 0) {
-                    const decodedName = abi.decode(["string"], projectData[2])
-                    const decodedLink = abi.decode(["string"], projectData[3])
-                    const decodedDescription = abi.decode(["string"], projectData[4])
+            for (let i = 0; i < totoalPendingProposal; i++) {
+                const projectData = await contract.getProjectData(projectId[i])
+                const decodedName = abi.decode(["string"], projectData[2])
+                const decodedLink = abi.decode(["string"], projectData[3])
+                const decodedDescription = abi.decode(["string"], projectData[4])
+                const decodedAuditResult = abi.decode(["string"], projectData[7][reportedAuditor[i]])
 
-                    names[i] = decodedName.toString()
-                    links[i] = decodedLink.toString()
-                    descriptions[i] = decodedDescription.toString()
-                    _totalPendingProject++
-                }
+                reportedAuditors[i] = []
+                auditResults[i] = []
+
+                names[i] = decodedName.toString()
+                links[i] = decodedLink.toString()
+                descriptions[i] = decodedDescription.toString()
+                auditResults[i] = decodedAuditResult.toString()
+                reportedAuditors[i] = projectData[6][reportedAuditor[i]].toString()
             }
             setName(names)
             setLink(links)
             setDescription(descriptions)
-            setTotoalPendingProject(_totalPendingProject)
+            setReportedAuditors(reportedAuditors)
+            setAuditResult(auditResults)
         } catch (error) {
             console.error("Error:", error)
         }
@@ -106,31 +152,14 @@ export default function Audit() {
         }
     }
 
-    async function revokeAndWithdrawStake() {
+    async function voteOnProposal(yesOrNo) {
         setIsLoading(true)
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const signer = provider.getSigner()
         const contract = new ethers.Contract(contractAddress, DeepFactAbi, signer)
         try {
-            const transactionResponse = await contract.revokeAndWithdrawStake()
-            const str = "Successfully revoked"
-            await listenForTransactionMine(transactionResponse, provider, str)
-        } catch (error) {
-            setShowModal_1(true)
-            setResults(error.message)
-            setIsLoading(false)
-        }
-    }
-
-    async function auditProject(currentIndex) {
-        setIsLoading(true)
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const signer = provider.getSigner()
-        const contract = new ethers.Contract(contractAddress, DeepFactAbi, signer)
-        const abiEncodeAuditReport = abi.encode(["string"], [auditReport])
-        try {
-            const transactionResponse = await contract.auditProject(currentIndex, abiEncodeAuditReport)
-            const str = "Successfully audited"
+            const transactionResponse = await contract.voteOnProposal(proposalId[(currentIndex, yesOrNo)])
+            const str = "Successfully voted"
             await listenForTransactionMine(transactionResponse, provider, str)
         } catch (error) {
             setShowModal_1(true)
@@ -141,7 +170,7 @@ export default function Audit() {
 
     const handleClick = (i) => {
         setCurrentIndex(i)
-        setshowModal_1(true)
+        setShowModal_2(true)
     }
 
     function listenForTransactionMine(transactionResponse, provider, str) {
@@ -149,7 +178,7 @@ export default function Audit() {
             try {
                 provider.once(transactionResponse.hash, (transactionReceipt) => {
                     setResults(str)
-                    setShowModal_1(true)
+                    setshowModal_1(true)
                     setIsLoading(false)
                     resolve()
                 })
@@ -164,15 +193,16 @@ export default function Audit() {
 
     async function updateUI() {
         getIsAuditor()
-        getTotalProject()
+        getTotalProposal()
+        getProposalInfo()
         getProjectData()
     }
 
     useEffect(() => {
         updateUI()
-    }, [isWeb3Enabled,totalProject, isAuditor, account])
+    }, [isWeb3Enabled, isAuditor, account, totalProposal])
 
-    for (let i = 0; i < totoalPendingProject; i++) {
+    for (let i = 0; i < totoalPendingProposal; i++) {
         cards.push(
             <div
                 className="w-full mt-5 bg-white rounded-lg shadow-md p-4 cursor-pointer transition duration-300 ease-in-out transform hover:bg-gray-200 hover:shadow-lg"
@@ -194,7 +224,7 @@ export default function Audit() {
 
     return (
         <div className="flex mt-5">
-            {isWeb3Enabled && chainId == "48899" || chainId == "11155420" ? (
+            {(isWeb3Enabled && chainId == "48899") || chainId == "11155420" ? (
                 <div className="flex justify-center w-full min-h-screen">
                     {showModal_1 && (
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -219,7 +249,7 @@ export default function Audit() {
                                 <button
                                     className="bg-white hover:bg-gray-200 text-black font-bold py-2 px-4 rounded"
                                     style={{ float: "right" }}
-                                    onClick={() => setshowModal_1(false)}
+                                    onClick={() => setShowModal_2(false)}
                                 >
                                     X
                                 </button>
@@ -232,22 +262,37 @@ export default function Audit() {
                                 <p class="text-black text-xl mt-5 ml-5 break-words" style={{ whiteSpace: "pre-wrap" }}>
                                     {description[currentIndex]}
                                 </p>
-                                <textarea
-                                    placeholder="Audit Report"
-                                    className="border-2 border-blue-500 h-1/3 w-full flex-grow mt-10 px-4 py-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition duration-300"
-                                    value={auditReport}
-                                    onChange={(e) => setAuditReport(e.target.value)}
-                                    style={{ color: "black" }}
-                                />
+                                <div className="w-full mt-5 bg-white rounded-lg shadow-md p-4 cursor-pointer transition duration-300 ease-in-out transform hover:bg-gray-200 hover:shadow-lg">
+                                    <p class="text-gray-500 font-semibold text-xl">
+                                        {_reportedAuditor[currentIndex]}
+                                    </p>
+                                    <p class="text-black text-base mt-3 break-words">
+                                        {auditResult[currentIndex]}
+                                    </p>
+                                </div>
+                                <p class="text-black text-xl mt-5 ml-5 break-words" style={{ whiteSpace: "pre-wrap" }}>
+                                    Do you think this response is incorrect or random answer?
+                                </p>
                                 <button
-                                    className="bg-gradient-to-r w-full from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white mt-10 mb-5 font-bold py-2 px-4 rounded-full shadow-lg transition duration-300"
-                                    onClick={() => auditProject(currentIndex)}
+                                    className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white ml-5 mt-10 mb-5 font-bold py-2 px-4 rounded-full shadow-lg transition duration-300"
+                                    onClick={() => voteOnProposal(1)}
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
                                         <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
                                     ) : (
-                                        "Submit"
+                                        "Yes"
+                                    )}
+                                </button>
+                                <button
+                                    className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white ml-5 mt-10 mb-5 font-bold py-2 px-4 rounded-full shadow-lg transition duration-300"
+                                    onClick={() => voteOnProposal(0)}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+                                    ) : (
+                                        "No"
                                     )}
                                 </button>
                             </div>
@@ -255,22 +300,6 @@ export default function Audit() {
                     )}
                     {isAuditor ? (
                         <div className="container mx-auto p-4">
-                            <button
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded mr-10 w-full h-12"
-                                onClick={() => revokeAndWithdrawStake()}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <div className="animate-spin bg-blue-600 spinner-border h-8 w-8 border-b-2 rounded-full"></div>
-                                ) : (
-                                    "Revoke and withdraw stake"
-                                )}
-                            </button>
-                            <Link href="/vote" legacyBehavior>
-                                <a className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded mt-5 mr-10 w-full h-12 text-center">
-                                    Vote
-                                </a>
-                            </Link>
                             <div className="flex flex-wrap mt-5">{cards}</div>
                         </div>
                     ) : (
@@ -305,7 +334,9 @@ export default function Audit() {
                 </div>
             ) : (
                 <div className="flex flex-col items-start mt-10 min-h-screen">
-                    <div className="ml-10 text-xl">Please connect to a wallet and switch to Zircuit testnet or Optimism sepolia testnet .</div>
+                    <div className="ml-10 text-xl">
+                        Please connect to a wallet and switch to Zircuit testnet or Optimism sepolia testnet .
+                    </div>
                     <button
                         onClick={() => {
                             handleNetworkSwitch("zircuit", setError)

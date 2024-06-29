@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useMoralis } from "react-moralis"
 import { ethers } from "ethers"
-import { FraudBlockerAbi } from "../constants"
+import { DeepFactAbi, ZircuitContractAddress, OptimismContractAddress } from "../constants"
 import { handleNetworkSwitch, networks } from "./networkUtils"
 import { sortProjectsByTime, filterProjectsWithAuditorResponses, options } from "./projectUtils"
 import Dropdown from 'react-dropdown'
@@ -26,11 +26,22 @@ export default function History() {
     const [_auditorAuditResult, setAuditorAuditResult] = useState([[], []])
     const abi = ethers.utils.defaultAbiCoder
 
-    const contractAddress = "0x3d19963555e8eE7B0dcc81eb442E7DCED5e8d12b"
+    const getContractAddress = () => {
+        switch (chainId) {
+            case 48899:
+                return ZircuitContractAddress
+            case 11155420:
+                return OptimismContractAddress
+            default:
+                return null
+        }
+    }
+
+    const contractAddress = getContractAddress()
 
     async function getSubmittedProjects() {
         const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, FraudBlockerAbi, provider)
+        const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
         try {
             const _submittedProjects = await contract.getSubmittedProjects(account)
             setSubmittedProjects(_submittedProjects)
@@ -41,7 +52,7 @@ export default function History() {
 
     async function getProjectData() {
         const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, FraudBlockerAbi, provider)
+        const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
         try {
             const names = []
             const links = []
@@ -171,7 +182,7 @@ export default function History() {
 
     return (
         <div className="flex mt-10" style={{ fontFamily: 'Space Mono, monospace' }}>
-            {isWeb3Enabled && chainId == "48899" ? (
+            {isWeb3Enabled && chainId == "48899" || chainId == "11155420" ? (
                 <div className="flex justify-center w-full min-h-screen">
                     <div className="w-5/6 mb-10">
                         {showModal_3 && (
@@ -260,7 +271,7 @@ export default function History() {
                 </div>
             ) : (
                 <div className="flex flex-col items-start mt-10 min-h-screen">
-                    <div className="ml-10 text-xl" style={{color:"black"}}>Please connect to a wallet and switch to Zircuit Testnet.</div>
+                    <div className="ml-10 text-xl">Please connect to a wallet and switch to Zircuit testnet or Optimism sepolia testnet .</div>
                     <button
                         onClick={() => {
                             handleNetworkSwitch("zircuit", setError)
@@ -268,6 +279,14 @@ export default function History() {
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-10 mt-10"
                     >
                         Switch to Zircuit Testnet
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleNetworkSwitch("optimism", setError)
+                        }}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-10 mt-10"
+                    >
+                        Switch to Optimism sepolia testnet
                     </button>
                 </div>
             )}

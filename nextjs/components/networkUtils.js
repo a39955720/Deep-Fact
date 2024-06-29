@@ -5,12 +5,23 @@ export const networks = {
         chainId: "0xBF03",
         chainName: "Zircuit",
         nativeCurrency: {
-            name: "Zircuit1",
+            name: "Zircuit",
             symbol: "ETH",
             decimals: 18,
         },
         rpcUrls: ["https://zircuit1.p2pify.com/"],
         blockExplorerUrls: ["https://explorer.zircuit.com"],
+    },
+    optimism: {
+        chainId: "0xaa37dc",
+        chainName: "Optimism",
+        nativeCurrency: {
+            name: "Optimism",
+            symbol: "ETH",
+            decimals: 18,
+        },
+        rpcUrls: ["https://sepolia.optimism.io"],
+        blockExplorerUrls: ["https://sepolia-optimistic.etherscan.io"],
     },
 }
 

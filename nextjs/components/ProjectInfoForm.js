@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { ethers } from "ethers"
-import { FraudBlockerAbi } from "../constants"
+import { DeepFactAbi, ZircuitContractAddress, OptimismContractAddress } from "../constants"
 import { handleNetworkSwitch, networks } from "./networkUtils"
+import Link from "next/link"
 import OpenAI from "openai"
 
 export default function Home() {
@@ -30,7 +31,18 @@ export default function Home() {
     const cards = []
     const cards1 = []
 
-    const contractAddress = "0x3d19963555e8eE7B0dcc81eb442E7DCED5e8d12b"
+    const getContractAddress = () => {
+        switch (chainId) {
+            case 48899:
+                return ZircuitContractAddress
+            case 11155420:
+                return OptimismContractAddress
+            default:
+                return null
+        }
+    }
+
+    const contractAddress = getContractAddress()
 
     async function submitProject() {
         setIsLoading(true)
@@ -56,7 +68,7 @@ export default function Home() {
         const abiEncodeCompletion = abi.encode(["string"], [completion.choices[0].message.content])
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const signer = provider.getSigner()
-        const contract = new ethers.Contract(contractAddress, FraudBlockerAbi, signer)
+        const contract = new ethers.Contract(contractAddress, DeepFactAbi, signer)
         const valueInWei = ethers.utils.parseEther("0.004")
         try {
             const transactionResponse = await contract.submitProject(
@@ -66,7 +78,7 @@ export default function Home() {
                 abiEncodeCompletion,
                 { value: valueInWei },
             )
-            setResults("Thank you for your Submission. You can view your project here")
+            const str = "Thank you for your Submission."
             await listenForTransactionMine(transactionResponse, provider, str)
         } catch (error) {
             setShowModal_1(true)
@@ -79,7 +91,7 @@ export default function Home() {
         setIsLoading(true)
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const signer = provider.getSigner()
-        const contract = new ethers.Contract(contractAddress, FraudBlockerAbi, signer)
+        const contract = new ethers.Contract(contractAddress, DeepFactAbi, signer)
         try {
             const transactionResponse = await contract.createProposal(currentIndex, index)
             const str = "Reported successfully"
@@ -92,9 +104,9 @@ export default function Home() {
     }
 
     async function getSubmittedProjects() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, FraudBlockerAbi, provider)
         try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
             const _submittedProjects = await contract.getSubmittedProjects(account)
             setSubmittedProjects(_submittedProjects)
         } catch (error) {
@@ -103,9 +115,9 @@ export default function Home() {
     }
 
     async function getProjectData() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const contract = new ethers.Contract(contractAddress, FraudBlockerAbi, provider)
         try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const contract = new ethers.Contract(contractAddress, DeepFactAbi, provider)
             const names = []
             const links = []
             const descriptions = []
@@ -178,11 +190,12 @@ export default function Home() {
     async function updateUI() {
         getSubmittedProjects()
         getProjectData()
+        getContractAddress()
     }
 
     useEffect(() => {
         updateUI()
-    }, [isWeb3Enabled, submittedProjects, showModal_1, showModal_2])
+    }, [isWeb3Enabled, submittedProjects, showModal_1, showModal_2, isLoading, chainId])
 
     for (let i = 0; i < submittedProjects.length; i++) {
         cards.push(
@@ -238,34 +251,25 @@ export default function Home() {
     }
 
     return (
-        <div className="flex mt-10" style={{ fontFamily: 'Space Mono, monospace' }}>
-            {isWeb3Enabled && chainId == "48899" ? (
+        <div className="flex mt-10" style={{ fontFamily: "Space Mono, monospace" }}>
+            {(isWeb3Enabled && chainId == "48899") || chainId == "11155420" ? (
                 <div className="flex justify-center w-full min-h-screen">
                     <div className="w-5/6 mb-10">
                         {showModal_1 && (
                             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                                 <div className="bg-white p-5 rounded-lg shadow-md max-w-md">
                                     <h2 className="text-xl font-semibold mb-4">{results}</h2>
-                                    <p className="mb-4 text-gray-600">
-                                        Thank you for your Submission. You can view your project{" "}
-                                        <a href="/history" className="text-blue-500 underline">
-                                            here
-                                        </a>
-                                    </p>
                                     <div className="flex justify-center space-x-4">
+                                        <Link href="/history" legacyBehavior>
+                                            <h1 className="bg-blue-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                                                View Project
+                                            </h1>
+                                        </Link>
                                         <button
-                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                            onClick={() => {
-                                                setShowModal_1(false)
-                                            }}
-                                        >
-                                            View Project
-                                        </button>
-                                        <button
-                                            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                                            className="bg-blue-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                                             onClick={() => setShowModal_1(false)}
                                         >
-                                            Cancel
+                                            Close
                                         </button>
                                     </div>
                                 </div>
@@ -290,6 +294,7 @@ export default function Home() {
                                         <button
                                             onClick={() => submitProject()}
                                             className="bg-yellow-400 text-black px-4 py-2 items-center rounded hover:bg-yellow-500"
+                                            disabled={isLoading}
                                         >
                                             Continue
                                         </button>
@@ -304,7 +309,7 @@ export default function Home() {
                             </div>
                         )}
                         {showModal_3 && (
-                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto z-50">
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto z-40">
                                 <div className="bg-white p-5 rounded w-3/4 bg-gray-200 h-screen overflow-y-scroll">
                                     <button
                                         className="bg-white hover:bg-gray-200 text-black font-bold py-2 px-4 rounded"
@@ -333,9 +338,6 @@ export default function Home() {
                             <h2 className="text-2xl font-bold mb-5" style={{ color: "black" }}>
                                 Submit Your Project
                             </h2>
-                            <p className="text-sm text-gray-500 mb-2" style={{ color: "black" }}>
-                                Enter the name of your project.
-                            </p>
                             <input
                                 placeholder="Project Name"
                                 className="border-2 border-blue-500 w-full mt-5 px-4 py-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition duration-300"
@@ -344,7 +346,7 @@ export default function Home() {
                                 style={{ color: "black" }}
                             />
                             <p className="text-sm text-gray-500 mb-2" style={{ color: "black" }}>
-                                Provide a link to your project.
+                                Enter the name of your project.
                             </p>
                             <input
                                 placeholder="Project Link"
@@ -354,15 +356,18 @@ export default function Home() {
                                 style={{ color: "black" }}
                             />
                             <p className="text-sm text-gray-500 mb-2" style={{ color: "black" }}>
-                                Provide a detailed description of your project.
+                                Provide a link to your project.
                             </p>
                             <textarea
                                 placeholder="Description"
-                                className="border-2 border-blue-500 w-full flex-grow mt-10 px-4 py-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition duration-300"
+                                className="border-2 border-blue-500 h-1/3 w-full flex-grow mt-10 px-4 py-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition duration-300"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 style={{ color: "black" }}
                             />
+                            <p className="text-sm text-gray-500 mb-2" style={{ color: "black" }}>
+                                Provide a detailed description of your project.
+                            </p>
                             <button
                                 className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white mt-10 mb-5 font-bold py-2 px-4 rounded-full shadow-lg transition duration-300"
                                 onClick={() => setShowModal_2(true)}
@@ -380,7 +385,9 @@ export default function Home() {
                 </div>
             ) : (
                 <div className="flex flex-col items-start mt-10 min-h-screen">
-                    <div className="ml-10 text-xl">Please connect to a wallet and switch to Zircuit Testnet.</div>
+                    <div className="ml-10 text-xl">
+                        Please connect to a wallet and switch to Zircuit testnet or Optimism sepolia testnet .
+                    </div>
                     <button
                         onClick={() => {
                             handleNetworkSwitch("zircuit", setError)
@@ -388,6 +395,14 @@ export default function Home() {
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-10 mt-10"
                     >
                         Switch to Zircuit Testnet
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleNetworkSwitch("optimism", setError)
+                        }}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-10 mt-10"
+                    >
+                        Switch to Optimism sepolia testnet
                     </button>
                 </div>
             )}
