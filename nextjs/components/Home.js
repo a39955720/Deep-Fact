@@ -7,7 +7,7 @@ import SpinningObject from "../components/SpinningObject";
 export default function Home() {
     let index = 0;
     useEffect(() => {
-        const text = "Create a decentralized anti-fraud community\n that gathers the power of \nexperts and professional institutions\n to combat fraud.";
+        const text = "Create a decentralized anti-fraud community that gathers the power\n of experts and professional institutions to combat fraud.";
         const speed = 50; // Adjust typing speed here
         const cursor = document.getElementById('cursor');
         const subtitle = document.getElementById('subtitle');
@@ -82,7 +82,7 @@ export default function Home() {
                 }
                 #subtitle {
                     display: inline-block;
-                    text-align: left;
+                    text-align: middle;
                 }
                 .bg-custom-blue {
                     background-color: #315a87;
