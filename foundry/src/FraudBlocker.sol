@@ -53,7 +53,7 @@ contract FraudBlocker is Ownable, ReentrancyGuard {
     uint256 private constant AUDITREWARD = 0.001 ether;
     uint256 private constant HANDLINGFEE = 0.001 ether;
     uint256 private constant STAKEAMOUNT = 0.1 ether;
-    uint256 private constant LOCKUPPERIOD = 30 days;
+    uint256 private constant LOCKUPPERIOD = 15 days;
     uint256 private constant VOTINGDURATION = 3 days;
 
     mapping(uint256 => ProjectData) private s_projectData;
