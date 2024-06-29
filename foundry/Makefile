@@ -34,3 +34,6 @@ Deploy:
 
 Verify:
 	@forge verify-contract --verifier-url https://explorer.zircuit.com/api/contractVerifyHardhat 0x003320742a1D147bcF1E987a3E85dD6d8B0d0330 src/DeepFact.sol:DeepFact --root . --etherscan-api-key $(ZIRCUIT_API_KEY)
+
+OPTIMISM:
+	@forge script script/DeployDeepFact.s.sol:DeployDeepFact --rpc-url $(OPTIMISM_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(OPTIMISM_ETHERSCAN_API_KEY) -vvvv

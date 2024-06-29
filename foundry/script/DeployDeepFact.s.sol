@@ -14,6 +14,11 @@ contract DeployDeepFact is Script {
             DeepFact deepFact = new DeepFact();
             vm.stopBroadcast();
             return deepFact;
+        } else if (block.chainid == 11155420) {
+            vm.startBroadcast();
+            DeepFact deepFact = new DeepFact();
+            vm.stopBroadcast();
+            return deepFact;
         } else {
             vm.startBroadcast(DEFAULT_ANVIL_PRIVATE_KEY);
             DeepFact deepFact = new DeepFact();
