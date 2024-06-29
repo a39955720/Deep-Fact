@@ -33,4 +33,4 @@ Deploy:
 	@forge script script/DeployFraudBlocker.s.sol:DeployFraudBlocker --rpc-url $(ZIRCUIT_RPC_URL) --account deployer --broadcast
 
 Verify:
-	@forge verify-contract --verifier-url https://explorer.zircuit.com/api/contractVerifyHardhat 0x3d19963555e8eE7B0dcc81eb442E7DCED5e8d12b src/FraudBlocker.sol:FraudBlocker --root . --etherscan-api-key $(ZIRCUIT_API_KEY)
+	@forge verify-contract --verifier-url https://explorer.zircuit.com/api/contractVerifyHardhat 0xc0AaA8D031B9e197cEe9BA6D34E873384c3D6135 src/FraudBlocker.sol:FraudBlocker --root . --etherscan-api-key $(ZIRCUIT_API_KEY)

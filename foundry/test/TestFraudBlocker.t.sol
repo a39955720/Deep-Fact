@@ -270,6 +270,7 @@ contract FraudBlockerTest is StdCheats, Test {
         ) = fraudBlocker.getProposalInfo(0);
 
         assertEq(startTime, block.timestamp);
+        assertEq(fraudBlocker.getTotalProposal(), 1);
         assertEq(yesVotes, 0);
         assertEq(noVotes, 0);
         assertEq(uint(status), uint(FraudBlocker.Status.Pending));
