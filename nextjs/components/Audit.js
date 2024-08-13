@@ -19,6 +19,7 @@ export default function Audit() {
     const [totoalPendingProject, setTotoalPendingProject] = useState([])
     const [name, setName] = useState([])
     const [link, setLink] = useState([])
+    const [error, setError] = useState("")
     const [description, setDescription] = useState([])
     const abi = ethers.utils.defaultAbiCoder
     const cards = []
